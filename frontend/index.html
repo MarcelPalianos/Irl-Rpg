@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>IRL RPG</title>
+</head>
+<body>
+
+  <link rel="stylesheet" href="style.css">
+
+  <h1>IRL RPG</h1>
+
+  <h2>Create Goal</h2>
+  <input id="goalName" placeholder="Goal name">
+
+  <select id="goalType">
+    <option value="STR">Physical - STR</option>
+    <option value="INT">Study - INT</option>
+    <option value="END">Discipline - END</option>
+    <option value="CHA">Social - CHA</option>
+    <option value="WIS">Wisdom - WIS</option>
+  </select>
+
+  <button onclick="createGoal()">Create Goal</button>
+
+  <h2>Goals</h2>
+  <div id="goals"></div>
+
+  <h2>Character</h2>
+  <div id="character"></div>
+
+  <script>
+    const API = "http://localhost:3000";
+
+    async function loadGoals() {
+      const res = await fetch(`${API}/goals`);
+      const goals = await res.json();
+
+      const goalsDiv = document.getElementById("goals");
+      goalsDiv.innerHTML = "";
+
+      goals.forEach(goal => {
+        const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <h3>${goal.name} (${goal.type})</h3>
+
+        <input id="task-${goal.id}" placeholder="New task">
+        <button onclick="addTask('${goal.id}')">Add Task</button>
+
+        <ul>
+          ${goal.tasks.map(task => `
+            <li class="${task.done ? 'task-done' : ''}">
+              ${task.text}
+              ${!task.done ? `<button onclick="completeTask('${task.id}')">✔</button>` : ""}
+            </li>
+          `).join("")}
+        </ul>
+      `;
+        goalsDiv.appendChild(div);
+      });
+    }
+
+    async function loadCharacter() {
+      const res = await fetch(`${API}/character`);
+      const character = await res.json();
+
+      document.getElementById("character").innerHTML = `
+        <p>Level: ${character.level}</p>
+        <p>XP: ${character.xp}/100</p>
+        <p>STR: ${character.stats.STR}</p>
+        <p>INT: ${character.stats.INT}</p>
+        <p>END: ${character.stats.END}</p>
+        <p>CHA: ${character.stats.CHA}</p>
+        <p>WIS: ${character.stats.WIS}</p>
+      `;
+    }
+
+    async function createGoal() {
+      const name = document.getElementById("goalName").value;
+      const type = document.getElementById("goalType").value;
+
+      await fetch(`${API}/goals`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, type })
+      });
+
+      document.getElementById("goalName").value = "";
+      loadGoals();
+    }
+
+    async function addTask(goalId) {
+      const input = document.getElementById(`task-${goalId}`);
+      const text = input.value;
+
+      await fetch(`${API}/goals/${goalId}/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+
+      input.value = "";
+      loadGoals();
+    }
+
+    async function completeTask(taskId) {
+      await fetch(`${API}/tasks/${taskId}/complete`, {
+        method: "POST"
+      });
+
+      loadGoals();
+      loadCharacter();
+    }
+
+    loadGoals();
+    loadCharacter();
+  </script>
+</body>
+</html>

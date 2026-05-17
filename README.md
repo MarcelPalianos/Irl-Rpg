@@ -12,3 +12,8 @@ goals#;
  5. github actions
  6. aws
  7. dockerhub
+
+pc folder: C:\Irl-Rpg
+
+github repo: https://github.com/MarcelPalianos/Irl-Rpg.git
+

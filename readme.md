@@ -8,7 +8,6 @@ goals.
     3a. nginx
     3b. redis
     3c. postgres
-    3d. redis
  4. github
  5. github actions
  6. aws
